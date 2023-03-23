@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "name": "gentest",
+  "version": "1.0.0",
+  "dependencies": {
+    "puppeteer-core": "^19.7.5"
+  }
+}
