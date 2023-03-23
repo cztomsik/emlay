@@ -1,0 +1,47 @@
+body {
+  /* reset */
+  font-family: sans-serif;
+  font-size: 15px;
+
+  background: #f8f9fa;
+}
+
+* {
+  /* reset */
+  padding: 0;
+  margin: 0;
+
+  /* we don't support any other positioning at the moment */
+  position: relative;
+}
+
+test-case-wrapper {
+  display: block;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  margin: 2rem;
+}
+
+test-case {
+  display: block;
+  margin: 2rem;
+}
+
+test-case * {
+  background: #f88;
+}
+
+test-case * * {
+  filter: hue-rotate(270deg) contrast(125%);
+}
+
+test-case .hover {
+  /* inline svg with diagonal hatching */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><path d='M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2' stroke='%230004' stroke-width='1' /></svg>");
+}
+
+test-case + pre {
+  padding: 2rem;
+  background: #e6e6e6;
+  color: #444;
+}
