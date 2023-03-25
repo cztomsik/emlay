@@ -99,7 +99,7 @@ function renderEntrypoint() {
   const std = @import("std");
 
   test {
-    ${fixtureFiles.map((f) => `  _ = @import("${f.replace(/-/, '_').replace(/\.html$/, '.zig')}");`).join('\n')}
+    ${fixtureFiles.map((f) => `  _ = @import("${f.replace(/-/, '_').replace(/\.html$/, '.zig')}");`).join('\n    ')}
   }
   `.replace(/^ {2}/gm, '')
 }
