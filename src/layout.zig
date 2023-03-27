@@ -1,7 +1,6 @@
 const std = @import("std");
 const isNan = std.math.isNan;
-
-pub const Style = @import("style.zig").Style;
+const Style = @import("style.zig").Style;
 
 pub const Layout = struct {
     pos: [2]f32 = .{ 0, 0 },

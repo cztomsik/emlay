@@ -1,5 +1,5 @@
 const std = @import("std");
-const lib = @import("src/layout.zig");
+const lib = @import("src/main.zig");
 
 pub const Node = struct {
     expected: [4]f32,
