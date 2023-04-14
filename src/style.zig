@@ -1,8 +1,8 @@
 const std = @import("std");
 
-// enums
+// Enums, these are fixed, you need to use these types
 pub const Display = enum { none, flex };
-pub const FlexDirection = enum { row, column }; // , row_reverse, column_reverse }; // TODO
+pub const FlexDirection = enum { row, column, row_reverse, column_reverse }; // TODO: row_reverse, column_reverse
 pub const FlexWrap = enum { no_wrap, wrap, wrap_reverse }; // TODO
 pub const AlignContent = enum { flex_start, center, flex_end, stretch, space_between, space_around, space_evenly }; // TODO
 pub const AlignItems = enum { flex_start, center, flex_end, baseline, stretch }; // TODO
@@ -10,6 +10,7 @@ pub const AlignSelf = enum { auto, flex_start, center, flex_end, baseline, stret
 pub const JustifyContent = enum { flex_start, center, flex_end, space_between, space_around, space_evenly }; // TODO
 pub const Position = enum { static, absolute, relative }; // TODO
 
+/// Basic dimension type. You can use this or create your own.
 pub const Dimension = union(enum) {
     auto,
     px: f32,
@@ -24,6 +25,10 @@ pub const Dimension = union(enum) {
     }
 };
 
+/// An example of how your style struct could look like. Note it's using the
+/// provided `Dimension` type but you are free to use any type you want. It can
+/// be any type which your `LayoutContext.resolve()` method can handle. You can
+/// even use multiple different types and use them for different properties.
 pub const Style = struct {
     display: Display = .flex,
 
@@ -34,7 +39,6 @@ pub const Style = struct {
     max_width: Dimension = .auto,
     max_height: Dimension = .auto,
 
-    // TODO: compact
     flex_grow: f32 = 0,
     flex_shrink: f32 = 1,
     flex_basis: Dimension = .auto, // .percent = 0

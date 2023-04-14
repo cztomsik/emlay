@@ -8,6 +8,7 @@ pub const AlignItems = style.AlignItems;
 pub const AlignSelf = style.AlignSelf;
 pub const JustifyContent = style.JustifyContent;
 pub const Position = style.Position;
+pub const Dimension = style.Dimension;
 pub const Style = style.Style;
 
-pub usingnamespace @import("layout.zig");
+pub const layout = @import("layout.zig").layout;
