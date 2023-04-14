@@ -1,4 +1,4 @@
-// npm i && node gentest.mjs && zig test tests.zig
+// npm i && node gentest.mjs && zig test ../tests.zig
 
 import puppeteer from 'puppeteer-core'
 import fs from 'fs'
@@ -22,7 +22,7 @@ const writeFile = (file, content) => {
 const browser = await puppeteer.launch({ channel: 'chrome' })
 
 // get list of all .html files in test-fixtures/
-const fixtureFiles = fs.readdirSync(SRC_DIR).filter((f) => f.endsWith('.html'))
+const fixtureFiles = fs.readdirSync(SRC_DIR).filter(f => f.endsWith('.html'))
 
 // generate test files
 for (const file of fixtureFiles) {
@@ -66,12 +66,12 @@ function renderFixture(fixture) {
 }
 
 function renderNode(node, depth = 0) {
-  const indent = (n) => ' '.repeat(n * 4)
+  const indent = n => ' '.repeat(n * 4)
 
   let props = node.props.map(([k, v]) => `.${k.replace(/-/, '_')} = ${renderValue(v)}`).join(', ')
   props = props ? ` ${props} ` : ''
 
-  let children = node.children.map((c) => '\n  ' + indent(depth + 1) + renderNode(c, depth + 1) + ',').join('')
+  let children = node.children.map(c => '\n  ' + indent(depth + 1) + renderNode(c, depth + 1) + ',').join('')
   children = children ? children + '\n  ' + indent(depth) : ''
 
   return `node(.{ ${node.layout.join(', ')} }, .{${props}}, .{${children}})`
@@ -99,7 +99,7 @@ function renderEntrypoint() {
   const std = @import("std");
 
   test {
-    ${fixtureFiles.map((f) => `  _ = @import("${f.replace(/-/, '_').replace(/\.html$/, '.zig')}");`).join('\n    ')}
+    ${fixtureFiles.map(f => `  _ = @import("${f.replace(/-/, '_').replace(/\.html$/, '.zig')}");`).join('\n    ')}
   }
   `.replace(/^ {2}/gm, '')
 }

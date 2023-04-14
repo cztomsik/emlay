@@ -1,0 +1,22 @@
+<script src="_testharness.js"></script>
+
+<test-case>
+  <div style="display: flex; width: 100px; height: 20px">
+    <div style="width: 100px; flex-shrink: 2"></div>
+    <div style="width: 100px; flex-shrink: 3"></div>
+  </div>
+</test-case>
+
+<test-case>
+  <div style="display: flex; width: 100px; height: 20px">
+    <div style="width: 100px"></div>
+    <div style="width: 100px; flex-shrink: 2"></div>
+  </div>
+</test-case>
+
+<test-case>
+  <div style="display: flex; width: 100px; height: 20px">
+    <div style="width: 100px; flex-shrink: 1"></div>
+    <div style="width: 100px; flex-shrink: 1.5"></div>
+  </div>
+</test-case>
