@@ -45,3 +45,12 @@ test-case + pre {
   background: #e6e6e6;
   color: #444;
 }
+
+#debug-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: #fff;
+}

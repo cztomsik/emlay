@@ -20,19 +20,61 @@ pub fn layout(ctx: anytype, node: anytype, size: [2]f32) void {
     const target = ctx.target(node);
     target.size[0] = style.width.resolve(size[0]);
     target.size[1] = style.height.resolve(size[1]);
-    computeNode(ctx, node, style, target.size);
+    computeNode(ctx, node, style, target, target.size);
 }
 
 // Compute layout for the node, given its base size. This is because part of
 // job has been already done by the parent (e.g. flexbox).
-fn computeNode(ctx: anytype, node: anytype, style: anytype, size: [2]f32) void {
+//
+// TODO: maybe introduce something like NodeContext? with .computeFlex/Block/Xxx()
+fn computeNode(ctx: anytype, node: anytype, style: anytype, target: anytype, size: [2]f32) void {
+    switch (style.display) {
+        .flex => computeFlex(ctx, node, style, target, size),
+        .block => computeBlock(ctx, node, style, target, size),
+        else => {},
+    }
+}
+
+fn computeBlock(ctx: anytype, node: anytype, style: anytype, target: anytype, size: [2]f32) void {
+    var y = ctx.resolve(style.padding_top, size[0]);
+    var content_height: f32 = 0;
+
+    // Available space for children
+    const avail_inner: [2]f32 = .{
+        @max(0, size[0] - ctx.resolve(style.padding_left, size[0]) - ctx.resolve(style.padding_right, size[0])),
+        @max(0, size[1] - ctx.resolve(style.padding_top, size[0]) - ctx.resolve(style.padding_bottom, size[0])),
+    };
+
+    // Go through children and compute their layout, and total height
+    var iter = ctx.children(node);
+    while (iter.next()) |ch| {
+        const ch_style = ctx.style(ch);
+        const ch_target = ctx.target(ch);
+
+        ch_target.size[0] = ch_style.width.resolve(size[0]);
+        ch_target.size[1] = ch_style.height.resolve(size[1]);
+        computeNode(ctx, ch, ch_style, ch_target, avail_inner);
+
+        ch_target.pos[0] = ctx.resolve(style.padding_left, size[0]);
+        ch_target.pos[1] = y;
+
+        content_height += ch_target.size[1];
+        y += ch_target.size[1];
+    }
+
+    // Fall back to parent width & content height if not specified
+    if (isNan(target.size[0])) target.size[0] = size[0];
+    if (isNan(target.size[1])) target.size[1] = content_height + ctx.resolve(style.padding_top, size[0]) + ctx.resolve(style.padding_bottom, size[0]);
+}
+
+fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, size: [2]f32) void {
     const is_row = style.flex_direction == .row or style.flex_direction == .row_reverse;
     // const is_reverse = style.flex_direction == .row_reverse or style.flex_direction == .column_reverse;
     const main: u1 = if (is_row) 0 else 1;
     const cross: u1 = ~main;
 
     // Available space for flexing + counters
-    var flex_space = node.size[main];
+    var flex_space = target.size[main];
     var grows: f32 = 0;
     var shrinks: f32 = 0;
 
@@ -57,15 +99,15 @@ fn computeNode(ctx: anytype, node: anytype, style: anytype, size: [2]f32) void {
         if (!isNan(basis)) ch_target.size[main] = basis;
 
         // TODO: skip if we can, but items should not directly cause overflow (text or child-child with given size)
-        computeNode(ctx, ch, ch_style, ch_target.size);
+        computeNode(ctx, ch, ch_style, ch_target, ch_target.size);
 
         // Determine cross size & subtract from flex space
-        node.size[cross] = @max(node.size[cross], ch_target.size[cross]);
+        target.size[cross] = @max(target.size[cross], ch_target.size[cross]);
         flex_space -= @max(0, ch_target.size[main]);
     }
 
     // Determine final size of the container
-    node.size[main] = @max(node.size[main], -flex_space);
+    target.size[main] = @max(target.size[main], -flex_space);
 
     // Starting position for children
     var pos: [2]f32 = .{
@@ -96,7 +138,7 @@ fn computeNode(ctx: anytype, node: anytype, style: anytype, size: [2]f32) void {
 
         // Now that we have the size, we can compute everything again, with
         // correct positions.
-        computeNode(ctx, ch, ch_style, ch_target.size);
+        computeNode(ctx, ch, ch_style, ch_target, ch_target.size);
 
         // advance
         pos[main] += ch_target.size[main];

@@ -16,15 +16,18 @@ window.onload = () => {
     tc.after(pre)
   }
 
+  // get the computed layout for an element
+  const getLayout = el => [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight]
+
   // get the structure, style and computed layouts for each element in each test case
-  window.fixtures = testCases.map((tc) => {
+  window.fixtures = testCases.map(tc => {
     if (tc.children.length !== 1) throw new Error('test cases must have exactly one child')
 
-    const dump = (el) => {
+    const dump = el => {
       return {
-        props: Array.from(el.style).map((k) => [k, el.style[k]]),
+        props: Array.from(el.style).map(k => [k, el.style[k]]),
         children: Array.from(el.children).map(dump),
-        layout: [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight],
+        layout: getLayout(el),
       }
     }
 
@@ -33,9 +36,11 @@ window.onload = () => {
 
   // debug
   let hoverEl = null
-  document.addEventListener('mouseover', (e) => {
+  const debugBar = document.body.appendChild(Object.assign(document.createElement('div'), { id: 'debug-bar' }))
+  document.addEventListener('mouseover', e => {
     if (hoverEl) hoverEl.classList.remove('hover')
     hoverEl = e.target
     hoverEl.classList.add('hover')
+    debugBar.textContent = JSON.stringify(getLayout(hoverEl), null, 2)
   })
 }

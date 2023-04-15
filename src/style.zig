@@ -1,7 +1,7 @@
 const std = @import("std");
 
 // Enums, these are fixed, you need to use these types
-pub const Display = enum { none, flex };
+pub const Display = enum { none, block, flex };
 pub const FlexDirection = enum { row, column, row_reverse, column_reverse }; // TODO: row_reverse, column_reverse
 pub const FlexWrap = enum { no_wrap, wrap, wrap_reverse }; // TODO
 pub const AlignContent = enum { flex_start, center, flex_end, stretch, space_between, space_around, space_evenly }; // TODO
