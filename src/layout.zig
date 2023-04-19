@@ -18,8 +18,8 @@ pub fn layout(ctx: anytype, node: anytype, size: [2]f32) void {
 
     const style = ctx.style(node);
     const target = ctx.target(node);
-    target.size[0] = style.width.resolve(size[0]);
-    target.size[1] = style.height.resolve(size[1]);
+    target.size[0] = ctx.resolve(style.width, size[0]);
+    target.size[1] = ctx.resolve(style.height, size[1]);
     computeNode(ctx, node, style, target, target.size);
 }
 
@@ -51,8 +51,8 @@ fn computeBlock(ctx: anytype, node: anytype, style: anytype, target: anytype, si
         const ch_style = ctx.style(ch);
         const ch_target = ctx.target(ch);
 
-        ch_target.size[0] = ch_style.width.resolve(size[0]);
-        ch_target.size[1] = ch_style.height.resolve(size[1]);
+        ch_target.size[0] = ctx.resolve(ch_style.width, size[0]);
+        ch_target.size[1] = ctx.resolve(ch_style.height, size[1]);
         computeNode(ctx, ch, ch_style, ch_target, avail_inner);
 
         ch_target.pos[0] = ctx.resolve(style.padding_left, size[0]);
@@ -91,11 +91,11 @@ fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
         shrinks += ch_style.flex_shrink;
 
         // Determine base size for the child
-        ch_target.size[0] = ch_style.width.resolve(size[0]);
-        ch_target.size[1] = ch_style.height.resolve(size[1]);
+        ch_target.size[0] = ctx.resolve(ch_style.width, size[0]);
+        ch_target.size[1] = ctx.resolve(ch_style.height, size[1]);
         if (isNan(ch_target.size[main])) ch_target.size[main] = 0;
         if (isNan(ch_target.size[cross])) ch_target.size[cross] = size[cross]; // TODO: - margin[w/h]
-        const basis = ch_style.flex_basis.resolve(size[main]);
+        const basis = ctx.resolve(ch_style.flex_basis, size[main]);
         if (!isNan(basis)) ch_target.size[main] = basis;
 
         // TODO: skip if we can, but items should not directly cause overflow (text or child-child with given size)
@@ -111,8 +111,8 @@ fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
 
     // Starting position for children
     var pos: [2]f32 = .{
-        @max(0, style.padding_left.resolve(size[0])),
-        @max(0, style.padding_top.resolve(size[1])),
+        @max(0, ctx.resolve(style.padding_left, size[0])),
+        @max(0, ctx.resolve(style.padding_top, size[1])),
     };
 
     // grow/shrink, position, reverse, align, stretch, margin, ...
