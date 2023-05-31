@@ -41,8 +41,8 @@ fn computeBlock(ctx: anytype, node: anytype, style: anytype, target: anytype, si
 
     // Available space for children
     const avail_inner: [2]f32 = .{
-        @max(0, size[0] - ctx.resolve(style.padding_left, size[0]) - ctx.resolve(style.padding_right, size[0])),
-        @max(0, size[1] - ctx.resolve(style.padding_top, size[0]) - ctx.resolve(style.padding_bottom, size[0])),
+        @max(@as(f32, 0), size[0] - ctx.resolve(style.padding_left, size[0]) - ctx.resolve(style.padding_right, size[0])),
+        @max(@as(f32, 0), size[1] - ctx.resolve(style.padding_top, size[0]) - ctx.resolve(style.padding_bottom, size[0])),
     };
 
     // Go through children and compute their layout, and total height
@@ -103,7 +103,7 @@ fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
 
         // Determine cross size & subtract from flex space
         target.size[cross] = @max(target.size[cross], ch_target.size[cross]);
-        flex_space -= @max(0, ch_target.size[main]);
+        flex_space -= @max(@as(f32, 0), ch_target.size[main]);
     }
 
     // Determine final size of the container
@@ -111,8 +111,8 @@ fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
 
     // Starting position for children
     var pos: [2]f32 = .{
-        @max(0, ctx.resolve(style.padding_left, size[0])),
-        @max(0, ctx.resolve(style.padding_top, size[1])),
+        @max(@as(f32, 0), ctx.resolve(style.padding_left, size[0])),
+        @max(@as(f32, 0), ctx.resolve(style.padding_top, size[1])),
     };
 
     // grow/shrink, position, reverse, align, stretch, margin, ...
@@ -131,8 +131,8 @@ fn computeFlex(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
             ch_target.size[main] += (flex_space / shrinks) * ch_style.flex_shrink;
         }
 
-        // ch_target.pos[main] += @max(0, ch_style.margin_left/top.resolve())
-        // pos[main] += @max(0, ch_style.margin_x/y.resolve())
+        // ch_target.pos[main] += @max(@as(f32, 0), ch_style.margin_left/top.resolve())
+        // pos[main] += @max(@as(f32, 0), ch_style.margin_x/y.resolve())
 
         // TODO: align
 
