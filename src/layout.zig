@@ -31,7 +31,10 @@ fn computeNode(ctx: anytype, node: anytype, style: anytype, target: anytype, siz
     switch (style.display) {
         .flex => computeFlex(ctx, node, style, target, size),
         .block => computeBlock(ctx, node, style, target, size),
-        else => {},
+        else => {
+            target.pos = .{ 0, 0 };
+            target.size = .{ 0, 0 };
+        },
     }
 }
 
