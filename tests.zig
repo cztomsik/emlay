@@ -35,7 +35,7 @@ pub fn expectLayout(root: Node) !void {
     defer root.deinitAll();
 
     var ctx: LayoutContext = .{};
-    lib.layout(&ctx, &copy, .{ 800, 600 });
+    lib.compute_layout(&ctx, &copy, .{ 800, 600 });
     try expectLayoutsEqual(&copy);
 }
 

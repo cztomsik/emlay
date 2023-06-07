@@ -57,10 +57,6 @@ are resolved. Here's an example of what it could look like:
 
 ```zig
 const MyLayoutContext = struct {
-    pub fn resolve(self: *MyLayoutContext, dimension: anytype, base: f32) f32 {
-        return dim.resolve(base);
-    }
-
     pub fn style(self: *MyLayoutContext, node: *Node) *Style {
         return &node.style;
     }
@@ -72,15 +68,19 @@ const MyLayoutContext = struct {
     pub fn target(self: *MyLayoutContext, node: *Node) *Node {
         return node;
     }
+
+    pub fn resolve(self: *MyLayoutContext, dimension: anytype, base: f32) f32 {
+        return dim.resolve(base);
+    }
 };
 ```
 
-- The `resolve()` function resolves the dimensions and is used to convert them to
-  a concrete value.
 - The `style()` function gets the style of a node.
 - The `children()` function returns an iterator for the children of a node.
 - The `target()` function returns the target where pos and size are written to.\
   This can be anything, including the node itself.
+- The `resolve()` function resolves the dimensions and is used to convert them to
+  a concrete value.
 
 ## License
 This library is licensed under the MIT license.
