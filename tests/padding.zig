@@ -5,6 +5,14 @@ const expectLayout = @import("../tests.zig").expectLayout;
 
 test {
     try expectLayout(
+        node(.{ 0, 0, 120, 120 }, .{ .display = .block, .width = .{ .px = 100 }, .height = .{ .px = 100 }, .padding_top = .{ .px = 10 }, .padding_right = .{ .px = 10 }, .padding_bottom = .{ .px = 10 }, .padding_left = .{ .px = 10 } }, .{
+            node(.{ 10, 10, 25, 25 }, .{ .width = .{ .px = 25 }, .height = .{ .px = 25 } }, .{}),
+        }),
+    );
+}
+
+test {
+    try expectLayout(
         node(.{ 0, 0, 120, 120 }, .{ .display = .flex, .width = .{ .px = 100 }, .height = .{ .px = 100 }, .padding_top = .{ .px = 10 }, .padding_right = .{ .px = 10 }, .padding_bottom = .{ .px = 10 }, .padding_left = .{ .px = 10 } }, .{
             node(.{ 10, 10, 25, 25 }, .{ .width = .{ .px = 25 }, .height = .{ .px = 25 } }, .{}),
         }),
