@@ -49,7 +49,7 @@ async function readFixtureFile(file) {
 
 function renderFile(fixtures) {
   return `
-  const node = @import("../tests.zig").Node.init;
+  const node = @import("../tests.zig").createNode;
   const expectLayout = @import("../tests.zig").expectLayout;
   ${fixtures.map(renderFixture).join('')}
   `.replace(/^ {2}/gm, '')
@@ -74,7 +74,7 @@ function renderNode(node, depth = 0) {
   let children = node.children.map(c => '\n  ' + indent(depth + 1) + renderNode(c, depth + 1) + ',').join('')
   children = children ? children + '\n  ' + indent(depth) : ''
 
-  return `node(.{ ${node.layout.join(', ')} }, .{${props}}, .{${children}})`
+  return `node(.{ ${node.layout.join(', ')} }, &.{${props}}, .{${children}})`
 }
 
 function renderValue(value) {
