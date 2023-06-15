@@ -25,7 +25,7 @@ const ChildrenIter = struct {
 
 /// Initialize a node with the given expected layout, style, and child
 /// nodes. Child nodes are copied so they can be modified during layout.
-pub fn createNode(expected: [4]f32, style: *const lib.Style, children: anytype) Node {
+pub fn createNode(expected: [4]f32, style: lib.Style, children: anytype) Node {
     return .{
         .context = .{
             .expected = expected,

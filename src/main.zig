@@ -64,7 +64,7 @@ pub const Style = struct {
 pub fn Node(comptime Context: type, comptime Children: type) type {
     return struct {
         context: Context,
-        style: *const Style,
+        style: Style = .{},
         pos: [2]f32 = .{ 0, 0 },
         size: [2]f32 = .{ 0, 0 },
         measure_fn: ?*const fn (*Self, [2]f32) [2]f32 = null, // TODO

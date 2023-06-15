@@ -74,7 +74,7 @@ function renderNode(node, depth = 0) {
   let children = node.children.map(c => '\n  ' + indent(depth + 1) + renderNode(c, depth + 1) + ',').join('')
   children = children ? children + '\n  ' + indent(depth) : ''
 
-  return `node(.{ ${node.layout.join(', ')} }, &.{${props}}, .{${children}})`
+  return `node(.{ ${node.layout.join(', ')} }, .{${props}}, .{${children}})`
 }
 
 function renderValue(value) {
