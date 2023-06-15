@@ -2,7 +2,7 @@ const std = @import("std");
 const lib = @import("src/main.zig");
 
 /// A node in our test tree.
-const Node = lib.Node(struct {
+const Node = lib.LayoutNode(struct {
     expected: [4]f32,
     children: []Node,
 }, ChildrenIter);
@@ -25,7 +25,7 @@ const ChildrenIter = struct {
 
 /// Initialize a node with the given expected layout, style, and child
 /// nodes. Child nodes are copied so they can be modified during layout.
-pub fn createNode(expected: [4]f32, style: lib.Style, children: anytype) Node {
+pub fn createNode(expected: [4]f32, style: lib.LayoutStyle, children: anytype) Node {
     return .{
         .context = .{
             .expected = expected,

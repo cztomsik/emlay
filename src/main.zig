@@ -28,7 +28,7 @@ pub const Dimension = union(enum) {
 };
 
 /// A style is a set of properties that can be applied to a node.
-pub const Style = struct {
+pub const LayoutStyle = struct {
     display: Display = .flex,
 
     width: Dimension = .auto,
@@ -58,13 +58,18 @@ pub const Style = struct {
     margin_right: Dimension = .{ .px = 0 },
     margin_bottom: Dimension = .{ .px = 0 },
     margin_left: Dimension = .{ .px = 0 },
+
+    border_top_width: Dimension = .{ .px = 0 },
+    border_right_width: Dimension = .{ .px = 0 },
+    border_bottom_width: Dimension = .{ .px = 0 },
+    border_left_width: Dimension = .{ .px = 0 },
 };
 
 /// A node is a single element in the layout tree.
-pub fn Node(comptime Context: type, comptime Children: type) type {
+pub fn LayoutNode(comptime Context: type, comptime Children: type) type {
     return struct {
         context: Context,
-        style: Style = .{},
+        style: LayoutStyle = .{},
         pos: [2]f32 = .{ 0, 0 },
         size: [2]f32 = .{ 0, 0 },
         measure_fn: ?*const fn (*Self, [2]f32) [2]f32 = null, // TODO
