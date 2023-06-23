@@ -11,8 +11,7 @@ pub const AlignSelf = enum { auto, flex_start, center, flex_end, baseline, stret
 pub const JustifyContent = enum { flex_start, center, flex_end, space_between, space_around, space_evenly }; // TODO
 pub const Position = enum { static, absolute, relative }; // TODO
 
-/// A dimension can be auto, a fixed pixel value, or a fraction of the parent's
-/// size. The fraction is a number between 0 and 1.
+/// Value type for all the different dimension properties.
 pub const Dimension = union(enum) {
     auto,
     px: f32,
@@ -27,8 +26,8 @@ pub const Dimension = union(enum) {
     }
 };
 
-/// A style is a set of properties that can be applied to a node.
-pub const LayoutStyle = struct {
+/// Layout properties for a node.
+pub const Style = struct {
     display: Display = .flex,
 
     width: Dimension = .auto,
@@ -65,30 +64,43 @@ pub const LayoutStyle = struct {
     border_left_width: Dimension = .{ .px = 0 },
 };
 
-/// A node is a single element in the layout tree.
-pub fn LayoutNode(comptime Context: type, comptime Children: type) type {
-    return struct {
-        context: Context,
-        style: LayoutStyle = .{},
-        pos: [2]f32 = .{ 0, 0 },
-        size: [2]f32 = .{ 0, 0 },
-        measure_fn: ?*const fn (*Self, [2]f32) [2]f32 = null, // TODO
+/// A node in the layout tree.
+pub const Node = struct {
+    style: Style = .{},
+    context: ?*anyopaque = null,
+    measure_fn: ?*const fn (*Node, [2]f32) [2]f32 = null, // TODO
 
-        const Self = @This();
+    // children
+    first_child: ?*Node = null,
+    next_sibling: ?*Node = null,
 
-        /// Get iterator over the children of this node.
-        pub fn children(self: *Self) Children {
-            return Children.init(self);
-        }
+    // result
+    pos: [2]f32 = .{ 0, 0 },
+    size: [2]f32 = .{ 0, 0 },
 
-        /// Compute the layout of this node and its children.
-        pub fn compute(self: *Self, size: [2]f32) void {
-            self.size = .{
-                self.style.width.resolve(size[0]),
-                self.style.height.resolve(size[1]),
-            };
+    /// An iterator over the children of a node.
+    pub const Children = struct {
+        next_child: ?*Node,
 
-            common.computeNode(self, self.size);
+        pub fn next(self: *Children) ?*Node {
+            const ch = self.next_child orelse return null;
+            self.next_child = ch.next_sibling;
+            return ch;
         }
     };
-}
+
+    /// Get iterator over the children of this node.
+    pub fn children(self: *Node) Children {
+        return .{ .next_child = self.first_child };
+    }
+
+    /// Compute the layout of this node and its children.
+    pub fn compute(self: *Node, size: [2]f32) void {
+        self.size = .{
+            self.style.width.resolve(size[0]),
+            self.style.height.resolve(size[1]),
+        };
+
+        common.computeNode(self, self.size);
+    }
+};
