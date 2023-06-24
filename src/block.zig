@@ -4,12 +4,13 @@ const Node = @import("main.zig").Node;
 const computeNode = @import("common.zig").computeNode;
 
 pub fn computeBlock(node: *Node, size: [2]f32) void {
-    var ctx = BlockContext.init(node, size);
+    var ctx = BlockBuilder.init(node, size);
     ctx.compute();
 }
 
-const BlockContext = struct {
-    // args
+/// Block layout builder.
+const BlockBuilder = struct {
+    // Input args
     node: *Node,
     size: [2]f32,
 
@@ -19,7 +20,7 @@ const BlockContext = struct {
     // state
     y: f32,
 
-    pub fn init(node: *Node, size: [2]f32) BlockContext {
+    pub fn init(node: *Node, size: [2]f32) BlockBuilder {
         return .{
             .node = node,
             .size = size,
@@ -32,7 +33,7 @@ const BlockContext = struct {
         };
     }
 
-    pub fn compute(self: *BlockContext) void {
+    pub fn compute(self: *BlockBuilder) void {
         var iter = self.node.children();
         while (iter.next()) |child| {
             self.addChild(child);
@@ -41,18 +42,20 @@ const BlockContext = struct {
         self.finish();
     }
 
-    fn addChild(self: *BlockContext, child: *Node) void {
+    fn addChild(self: *BlockBuilder, child: *Node) void {
         child.size[0] = child.style.width.resolve(self.size[0]);
         child.size[1] = child.style.height.resolve(self.size[1]);
         computeNode(child, self.avail_inner);
 
+        self.y += child.style.margin_top.resolve(self.size[0]);
+
         child.pos[0] = self.node.style.padding_left.resolve(self.size[0]);
         child.pos[1] = self.y;
 
-        self.y += child.size[1]; // TODO: margin
+        self.y += child.size[1] + child.style.margin_bottom.resolve(self.size[0]);
     }
 
-    fn finish(self: *BlockContext) void {
+    fn finish(self: *BlockBuilder) void {
         if (isNan(self.node.size[0])) {
             self.node.size[0] = self.size[0];
         }
