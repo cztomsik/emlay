@@ -4,7 +4,7 @@ const common = @import("common.zig");
 // Enums for all the different style properties. See the CSS spec for more info.
 pub const Display = enum { none, block, flex };
 pub const FlexDirection = enum { row, column }; // TODO: row_reverse, column_reverse
-pub const FlexWrap = enum { no_wrap, wrap, wrap_reverse }; // TODO
+pub const FlexWrap = enum { no_wrap, wrap }; // TODO: wrap_reverse
 pub const AlignContent = enum { flex_start, center, flex_end, stretch, space_between, space_around, space_evenly }; // TODO
 pub const AlignItems = enum { flex_start, center, flex_end, baseline, stretch }; // TODO
 pub const AlignSelf = enum { auto, flex_start, center, flex_end, baseline, stretch }; // TODO
@@ -23,6 +23,10 @@ pub const Dimension = union(enum) {
             .px => |v| v,
             .fraction => |v| v * base,
         };
+    }
+
+    pub fn resolve0(self: Dimension, base: f32) f32 {
+        return @max(@as(f32, 0), self.resolve(base));
     }
 };
 

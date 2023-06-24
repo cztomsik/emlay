@@ -3,62 +3,64 @@ const isNan = std.math.isNan;
 const Node = @import("main.zig").Node;
 const computeNode = @import("common.zig").computeNode;
 
+/// Compute flex layout for the given node.
 pub fn computeFlex(node: *Node, size: [2]f32) void {
-    var ctx = FlexContext.init(node, size);
+    var ctx = FlexBuilder.init(node, size);
     ctx.compute();
 }
 
-const FlexContext = struct {
+/// Flex layout builder.
+const FlexBuilder = struct {
     // Input args
     node: *Node,
     size: [2]f32,
 
     // Shared consts
     is_row: bool,
+    is_wrap: bool,
     main: u1,
     cross: u1,
 
     // Per-line state
+    y: f32,
     flex_space: f32,
+    line_pos: f32,
+    line_height: f32 = 0,
     grows: f32 = 0,
     shrinks: f32 = 0,
 
-    pub fn init(node: *Node, size: [2]f32) FlexContext {
-        const is_row = node.style.flex_direction == .row; // or node.style.flex_direction == .row_reverse;
-        // const is_reverse = node.style.flex_direction == .row_reverse or node.style.flex_direction == .column_reverse;
+    pub fn init(node: *Node, size: [2]f32) FlexBuilder {
+        const is_row = node.style.flex_direction == .row;
+        const main: u1 = if (is_row) 0 else 1;
 
-        return FlexContext{
+        return FlexBuilder{
             .node = node,
             .size = size,
 
             .is_row = is_row,
-            // .is_reverse = is_reverse,
-            .main = if (is_row) 0 else 1,
-            .cross = if (is_row) 1 else 0,
+            .is_wrap = node.style.flex_wrap == .wrap,
+            .main = main,
+            .cross = ~main,
 
-            .flex_space = node.size[if (is_row) 0 else 1],
+            .y = if (is_row) node.style.padding_top.resolve0(size[1]) else node.style.padding_left.resolve0(size[0]),
+            .line_pos = if (is_row) node.style.padding_left.resolve0(size[0]) else node.style.padding_top.resolve0(size[1]),
+            .flex_space = node.size[main],
         };
     }
 
-    pub fn compute(self: *FlexContext) void {
-        // Go through children and determine their base sizes, and total flex space
-        // available for growing/shrinking. This is done before positioning, as we
-        // need to know the size of the container before we can compute flex space.
+    pub fn compute(self: *FlexBuilder) void {
+        // Compute base sizes, flex space per line, wrap if needed, etc.
         var iter = self.node.children();
         while (iter.next()) |ch| {
-            if (!self.addChild(ch)) {
-                self.finishLine();
-            }
+            self.addChild(ch);
         }
 
-        self.finishLine();
-
-        // Determine final size of the container
-        self.node.size[self.main] = @max(self.node.size[self.main], -self.flex_space);
+        // Finish the layout
+        self.finish();
     }
 
-    pub fn addChild(self: *FlexContext, child: *Node) bool {
-        // Determine base size for the child
+    pub fn addChild(self: *FlexBuilder, child: *Node) void {
+        // Compute base size of the child
         child.size[0] = child.style.width.resolve(self.size[0]);
         child.size[1] = child.style.height.resolve(self.size[1]);
         if (isNan(child.size[self.main])) child.size[self.main] = 0;
@@ -69,29 +71,25 @@ const FlexContext = struct {
         // TODO: skip if we can, but items should not directly cause overflow (text or child-child with given size)
         computeNode(child, child.size);
 
+        // Wrap if needed
+        if (self.is_wrap and child.size[self.main] > self.flex_space) {
+            self.finishLine();
+        }
+
         // Update counters
         self.grows += child.style.flex_grow;
         self.shrinks += child.style.flex_shrink;
 
-        // Update container cross size & subtract from flex space
-        self.node.size[self.cross] = @max(child.size[self.cross], child.size[self.cross]);
+        // Update the line "height" & subtract from flex space
+        self.line_height = @max(self.line_height, child.size[self.cross]);
         self.flex_space -= @max(@as(f32, 0), child.size[self.main]);
-
-        // TODO: if we can't fit, return false and don't add the child (flex-wrap)
-        return true;
     }
 
-    pub fn finishLine(self: *FlexContext) void {
-        // Starting position for children
-        var pos: [2]f32 = .{
-            @max(@as(f32, 0), self.node.style.padding_left.resolve(self.size[0])),
-            @max(@as(f32, 0), self.node.style.padding_top.resolve(self.size[1])),
-        };
-
+    pub fn finishLine(self: *FlexBuilder) void {
         // grow/shrink, position, reverse, align, stretch, margin, ...
         var iter = self.node.children();
         while (iter.next()) |ch| {
-            ch.pos = pos;
+            ch.pos[self.main] = self.line_pos + ch.style.margin_left.resolve0(self.size[0]);
 
             if (self.flex_space > 0 and ch.style.flex_grow > 0) {
                 ch.size[self.main] += (self.flex_space / self.grows) * ch.style.flex_grow;
@@ -101,17 +99,30 @@ const FlexContext = struct {
                 ch.size[self.main] += (self.flex_space / self.shrinks) * ch.style.flex_shrink;
             }
 
-            // ch.pos[main] += @max(@as(f32, 0), ch.style.margin_left/top.resolve())
-            // pos[main] += @max(@as(f32, 0), ch.style.margin_x/y.resolve())
-
             // TODO: align
 
-            // Now that we have the size, we can compute everything again, with
-            // correct positions.
+            // Recompute again, with final size
             computeNode(ch, ch.size);
 
-            // advance
-            pos[self.main] += ch.size[self.main];
+            // Update position for next child
+            self.line_pos += ch.size[self.main] + ch.style.margin_left.resolve0(self.size[0]) + ch.style.margin_right.resolve0(self.size[0]);
         }
+
+        // Advance to next line
+        self.y += self.line_height;
+        self.flex_space = self.node.size[self.main];
+        self.line_height = 0;
+        self.line_pos = if (self.is_row) self.node.style.padding_left.resolve(self.size[0]) else self.node.style.padding_top.resolve(self.size[1]);
+        self.grows = 0;
+        self.shrinks = 0;
+    }
+
+    pub fn finish(self: *FlexBuilder) void {
+        self.finishLine();
+
+        // Determine final size of the container
+        self.node.size[self.main] = @max(self.node.size[self.main], -self.flex_space);
+        self.node.size[self.cross] = @max(self.node.size[self.cross], self.y);
+        self.node.size[self.cross] += if (self.is_row) self.node.style.padding_bottom.resolve(self.size[1]) else self.node.style.padding_right.resolve(self.size[0]);
     }
 };
