@@ -46,7 +46,7 @@ const BlockContext = struct {
         child.size[1] = child.style.height.resolve(self.size[1]);
         computeNode(child, self.avail_inner);
 
-        child.pos[0] = child.style.padding_left.resolve(self.size[0]);
+        child.pos[0] = self.node.style.padding_left.resolve(self.size[0]);
         child.pos[1] = self.y;
 
         self.y += child.size[1]; // TODO: margin
