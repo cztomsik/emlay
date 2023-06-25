@@ -26,7 +26,7 @@ pub const Dimension = union(enum) {
     }
 
     pub fn resolve0(self: Dimension, base: f32) f32 {
-        return @max(@as(f32, 0), self.resolve(base));
+        return @max(0, self.resolve(base));
     }
 };
 

@@ -23,8 +23,8 @@ const FlexBuilder = struct {
 
     // Per-line state
     y: f32,
-    flex_space: f32,
     line_pos: f32,
+    line_space: f32,
     line_height: f32 = 0,
     grows: f32 = 0,
     shrinks: f32 = 0,
@@ -44,12 +44,12 @@ const FlexBuilder = struct {
 
             .y = if (is_row) node.style.padding_top.resolve0(size[1]) else node.style.padding_left.resolve0(size[0]),
             .line_pos = if (is_row) node.style.padding_left.resolve0(size[0]) else node.style.padding_top.resolve0(size[1]),
-            .flex_space = node.size[main],
+            .line_space = @max(0, node.size[main]),
         };
     }
 
     pub fn compute(self: *FlexBuilder) void {
-        // Compute base sizes, flex space per line, wrap if needed, etc.
+        // Compute base sizes, space per line, wrap if needed, etc.
         var iter = self.node.children();
         while (iter.next()) |ch| {
             self.addChild(ch);
@@ -72,7 +72,7 @@ const FlexBuilder = struct {
         computeNode(child, child.size);
 
         // Wrap if needed
-        if (self.is_wrap and child.size[self.main] > self.flex_space) {
+        if (self.is_wrap and child.size[self.main] > self.line_space) {
             self.finishLine();
         }
 
@@ -82,7 +82,11 @@ const FlexBuilder = struct {
 
         // Update the line "height" & subtract from flex space
         self.line_height = @max(self.line_height, child.size[self.cross]);
-        self.flex_space -= @max(@as(f32, 0), child.size[self.main]);
+        self.line_space -= @max(0, child.size[self.main]);
+
+        // Sanity checks
+        std.debug.assert(self.y >= 0);
+        std.debug.assert(self.line_height >= 0);
     }
 
     pub fn finishLine(self: *FlexBuilder) void {
@@ -90,13 +94,14 @@ const FlexBuilder = struct {
         var iter = self.node.children();
         while (iter.next()) |ch| {
             ch.pos[self.main] = self.line_pos + ch.style.margin_left.resolve0(self.size[0]);
+            ch.pos[self.cross] = self.y + ch.style.margin_top.resolve0(self.size[1]);
 
-            if (self.flex_space > 0 and ch.style.flex_grow > 0) {
-                ch.size[self.main] += (self.flex_space / self.grows) * ch.style.flex_grow;
+            if (self.line_space > 0 and ch.style.flex_grow > 0) {
+                ch.size[self.main] += (self.line_space / self.grows) * ch.style.flex_grow;
             }
 
-            if (self.flex_space < 0 and ch.style.flex_shrink > 0) {
-                ch.size[self.main] += (self.flex_space / self.shrinks) * ch.style.flex_shrink;
+            if (self.line_space < 0 and ch.style.flex_shrink > 0) {
+                ch.size[self.main] += (self.line_space / self.shrinks) * ch.style.flex_shrink;
             }
 
             // TODO: align
@@ -108,9 +113,13 @@ const FlexBuilder = struct {
             self.line_pos += ch.size[self.main] + ch.style.margin_left.resolve0(self.size[0]) + ch.style.margin_right.resolve0(self.size[0]);
         }
 
+        if (isNan(self.node.size[self.main]) and self.line_space < 0) {
+            self.node.size[self.main] = -self.line_space;
+        }
+
         // Advance to next line
         self.y += self.line_height;
-        self.flex_space = self.node.size[self.main];
+        self.line_space = @max(0, self.node.size[self.main]);
         self.line_height = 0;
         self.line_pos = if (self.is_row) self.node.style.padding_left.resolve(self.size[0]) else self.node.style.padding_top.resolve(self.size[1]);
         self.grows = 0;
@@ -120,9 +129,9 @@ const FlexBuilder = struct {
     pub fn finish(self: *FlexBuilder) void {
         self.finishLine();
 
-        // Determine final size of the container
-        self.node.size[self.main] = @max(self.node.size[self.main], -self.flex_space);
+        self.node.size[self.main] = @max(0, self.node.size[self.main]);
+        self.node.size[self.cross] = @max(0, self.node.size[self.cross]);
         self.node.size[self.cross] = @max(self.node.size[self.cross], self.y);
-        self.node.size[self.cross] += if (self.is_row) self.node.style.padding_bottom.resolve(self.size[1]) else self.node.style.padding_right.resolve(self.size[0]);
+        self.node.size[self.cross] += if (self.is_row) self.node.style.padding_bottom.resolve0(self.size[1]) else self.node.style.padding_right.resolve0(self.size[0]);
     }
 };

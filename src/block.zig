@@ -26,10 +26,10 @@ const BlockBuilder = struct {
             .size = size,
 
             .avail_inner = .{
-                @max(@as(f32, 0), size[0] - node.style.padding_left.resolve(size[0]) - node.style.padding_right.resolve(size[0])),
-                @max(@as(f32, 0), size[1] - node.style.padding_top.resolve(size[0]) - node.style.padding_bottom.resolve(size[0])),
+                @max(0, size[0] - node.style.padding_left.resolve0(size[0]) - node.style.padding_right.resolve0(size[0])),
+                @max(0, size[1] - node.style.padding_top.resolve0(size[0]) - node.style.padding_bottom.resolve0(size[0])),
             },
-            .y = node.style.padding_top.resolve(size[0]),
+            .y = node.style.padding_top.resolve0(size[0]),
         };
     }
 
@@ -47,12 +47,12 @@ const BlockBuilder = struct {
         child.size[1] = child.style.height.resolve(self.size[1]);
         computeNode(child, self.avail_inner);
 
-        self.y += child.style.margin_top.resolve(self.size[0]);
+        self.y += child.style.margin_top.resolve0(self.size[0]);
 
-        child.pos[0] = self.node.style.padding_left.resolve(self.size[0]);
+        child.pos[0] = self.node.style.padding_left.resolve0(self.size[0]);
         child.pos[1] = self.y;
 
-        self.y += child.size[1] + child.style.margin_bottom.resolve(self.size[0]);
+        self.y += child.size[1] + child.style.margin_bottom.resolve0(self.size[0]);
     }
 
     fn finish(self: *BlockBuilder) void {
@@ -61,7 +61,7 @@ const BlockBuilder = struct {
         }
 
         if (isNan(self.node.size[1])) {
-            self.node.size[1] = self.y + self.node.style.padding_bottom.resolve(self.size[0]);
+            self.node.size[1] = self.y + self.node.style.padding_bottom.resolve0(self.size[0]);
         }
     }
 };
