@@ -17,6 +17,7 @@ pub const Dimension = union(enum) {
     px: f32,
     fraction: f32,
 
+    /// Resolve the dimension to a value in pixels.
     pub fn resolve(self: Dimension, base: f32) f32 {
         return switch (self) {
             .auto => std.math.nan_f32,
@@ -25,8 +26,10 @@ pub const Dimension = union(enum) {
         };
     }
 
+    /// Resolve the dimension to a value in pixels, or 0 if it is auto.
     pub fn resolve0(self: Dimension, base: f32) f32 {
-        return @max(0, self.resolve(base));
+        const val = self.resolve(base);
+        return if (std.math.isNan(val)) 0 else val;
     }
 };
 

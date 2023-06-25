@@ -22,7 +22,7 @@ pub fn computeNode(node: *Node, size: [2]f32) void {
         },
     }
 
-    // std.debug.print("{s} {d} {d}\n", .{ @tagName(node.style.display), node.size[0], node.size[1] });
+    // std.debug.print("{s} {d} {d} <- {d} {d}\n", .{ @tagName(node.style.display), node.size[0], node.size[1], size[0], size[1] });
     std.debug.assert(node.size[0] >= 0);
     std.debug.assert(node.size[1] >= 0);
 }

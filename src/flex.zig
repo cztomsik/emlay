@@ -81,8 +81,8 @@ const FlexBuilder = struct {
         self.shrinks += child.style.flex_shrink;
 
         // Update the line "height" & subtract from flex space
-        self.line_height = @max(self.line_height, child.size[self.cross]);
-        self.line_space -= @max(0, child.size[self.main]);
+        self.line_height = @max(self.line_height, child.size[self.cross]); // TODO: include child margin
+        self.line_space -= child.size[self.main];
 
         // Sanity checks
         std.debug.assert(self.y >= 0);
@@ -129,8 +129,10 @@ const FlexBuilder = struct {
     pub fn finish(self: *FlexBuilder) void {
         self.finishLine();
 
-        self.node.size[self.main] = @max(0, self.node.size[self.main]);
-        self.node.size[self.cross] = @max(0, self.node.size[self.cross]);
+        // should be already computed by finishLine()
+        if (isNan(self.node.size[self.main])) self.node.size[self.main] = 0;
+
+        if (isNan(self.node.size[self.cross])) self.node.size[self.cross] = 0;
         self.node.size[self.cross] = @max(self.node.size[self.cross], self.y);
         self.node.size[self.cross] += if (self.is_row) self.node.style.padding_bottom.resolve0(self.size[1]) else self.node.style.padding_right.resolve0(self.size[0]);
     }
