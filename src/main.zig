@@ -73,16 +73,23 @@ pub const Style = struct {
 
 /// A node in the layout tree.
 pub const Node = struct {
+    /// Style properties for this node.
     style: Style = .{},
+
+    /// Optional opaque pointer to user data.
     context: ?*anyopaque = null,
+
+    /// Optional sizing callback.
     measure_fn: ?*const fn (*Node, [2]f32) [2]f32 = null, // TODO
 
     // children
     first_child: ?*Node = null,
     next_sibling: ?*Node = null,
 
-    // result
+    /// Position of the node, relative to its parent.
     pos: [2]f32 = .{ 0, 0 },
+
+    /// Size of the node, including padding and border.
     size: [2]f32 = .{ 0, 0 },
 
     /// An iterator over the children of a node.
