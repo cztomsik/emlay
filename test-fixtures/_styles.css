@@ -31,6 +31,12 @@ test-case * {
   background: #f88;
 }
 
+/* prevent margin collapse */
+test-case *::before {
+  content: ' ';
+  display: table;
+}
+
 test-case * * {
   filter: hue-rotate(270deg) contrast(125%);
 }
