@@ -47,10 +47,10 @@ pub fn expectLayout(root: *Node) !void {
 fn expectLayoutsEqual(node: *Node) !void {
     var expected = @ptrCast(*[4]f32, @alignCast(@alignOf([4]f32), node.context));
 
-    try expectEq(expected[0], node.pos[0]);
-    try expectEq(expected[1], node.pos[1]);
-    try expectEq(expected[2], node.size[0]);
-    try expectEq(expected[3], node.size[1]);
+    try expectDim(expected[0], node.pos[0], "x");
+    try expectDim(expected[1], node.pos[1], "y");
+    try expectDim(expected[2], node.size[0], "width");
+    try expectDim(expected[3], node.size[1], "height");
 
     var iter = node.children();
     while (iter.next()) |child| {
@@ -58,9 +58,12 @@ fn expectLayoutsEqual(node: *Node) !void {
     }
 }
 
-// Compare floats with a small tolerance.
-fn expectEq(a: f32, b: f32) !void {
-    try std.testing.expectApproxEqAbs(a, b, 0.34);
+// Compare dimensions with a small tolerance.
+inline fn expectDim(a: f32, b: f32, name: []const u8) !void {
+    if (!std.math.approxEqAbs(f32, a, b, 0.34)) {
+        std.debug.print("Expected {s} to be {d} but got {d}\n", .{ name, a, b });
+        return error.TestExpectedApproxEqAbs;
+    }
 }
 
 test {
