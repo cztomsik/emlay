@@ -85,9 +85,12 @@ function renderValue(value) {
     case /^[\d\.]+px$/.test(value):
       return `.{ .px = ${value.slice(0, -2)} }`
 
-    // TODO: fix this
+    // TODO: flex-basis 0% should be what is currently .auto
     case value === '0%':
       return '.auto'
+
+    case /^[\d\.]+%$/.test(value):
+      return `.{ .percent = ${value.slice(0, -1)} }`
 
     default:
       return value

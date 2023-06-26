@@ -15,14 +15,14 @@ pub const Position = enum { static, absolute, relative }; // TODO
 pub const Dimension = union(enum) {
     auto,
     px: f32,
-    fraction: f32,
+    percent: f32,
 
     /// Resolve the dimension to a value in pixels.
     pub fn resolve(self: Dimension, base: f32) f32 {
         return switch (self) {
             .auto => std.math.nan_f32,
             .px => |v| v,
-            .fraction => |v| v * base,
+            .percent => |v| v / 100 * base,
         };
     }
 
