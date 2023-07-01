@@ -29,7 +29,7 @@ pub fn deinitAll(node: *Node) void {
         deinitAll(child);
     }
 
-    var expected = @ptrCast(*[4]f32, @alignCast(@alignOf([4]f32), node.context));
+    var expected: *[4]f32 = @ptrCast(@alignCast(node.context));
 
     std.testing.allocator.destroy(expected);
     std.testing.allocator.destroy(node);
@@ -45,7 +45,7 @@ pub fn expectLayout(root: *Node) !void {
 
 // Recursive layout check.
 fn expectLayoutsEqual(node: *Node) !void {
-    var expected = @ptrCast(*[4]f32, @alignCast(@alignOf([4]f32), node.context));
+    var expected: *[4]f32 = @ptrCast(@alignCast(node.context));
 
     try expectDim(expected[0], node.pos[0], "x");
     try expectDim(expected[1], node.pos[1], "y");

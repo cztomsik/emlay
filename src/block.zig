@@ -3,14 +3,9 @@ const isNan = std.math.isNan;
 const Node = @import("main.zig").Node;
 const computeNode = @import("common.zig").computeNode;
 
-pub fn computeBlock(node: *Node, size: [2]f32) void {
-    var ctx = BlockLayoutContext.init(node, size);
-    ctx.compute();
-}
-
 /// Context for the currently computed block layout.
-const BlockLayoutContext = struct {
-    /// The block node being computed.
+pub const BlockLayoutContext = struct {
+    /// The block node we're computing the layout for.
     node: *Node,
 
     /// Size used for resolving.
@@ -22,8 +17,8 @@ const BlockLayoutContext = struct {
     /// The Y position for the next child.
     next_y: f32,
 
-    // Init the context for the given node and size.
-    fn init(node: *Node, size: [2]f32) BlockLayoutContext {
+    /// Initialize the context for the given node and size.
+    pub fn init(node: *Node, size: [2]f32) BlockLayoutContext {
         return .{
             .node = node,
             .size = size,
@@ -35,8 +30,8 @@ const BlockLayoutContext = struct {
         };
     }
 
-    // Compute the layout.
-    fn compute(self: *BlockLayoutContext) void {
+    /// Compute the layout for the node.
+    pub fn compute(self: *BlockLayoutContext) void {
         var iter = self.node.children();
         while (iter.next()) |child| {
             self.addChild(child);
@@ -48,6 +43,7 @@ const BlockLayoutContext = struct {
     // Add a child to the layout.
     fn addChild(self: *BlockLayoutContext, child: *Node) void {
         child.size[0] = child.style.width.resolve(self.size[0]);
+        if (isNan(child.size[0])) child.size[0] = self.avail_inner[0]; // TODO - padding
         child.size[1] = child.style.height.resolve(self.size[1]);
         computeNode(child, self.avail_inner);
 

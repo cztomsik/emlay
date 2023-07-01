@@ -3,16 +3,11 @@ const isNan = std.math.isNan;
 const Node = @import("main.zig").Node;
 const computeNode = @import("common.zig").computeNode;
 
-/// Compute flex layout for the given node.
-pub fn computeFlex(node: *Node, size: [2]f32) void {
-    var ctx = FlexBuilder.init(node, size);
-    ctx.compute();
-}
-
-/// Flex layout builder.
-const FlexBuilder = struct {
-    // Input args
+/// Context for the currently computed flex layout.
+pub const FlexLayoutContext = struct {
+    /// The flex node we're computing the layout for
     node: *Node,
+
     size: [2]f32,
 
     // Shared consts
@@ -29,11 +24,12 @@ const FlexBuilder = struct {
     grows: f32 = 0,
     shrinks: f32 = 0,
 
-    pub fn init(node: *Node, size: [2]f32) FlexBuilder {
+    /// Initialize the context for the given node and size.
+    pub fn init(node: *Node, size: [2]f32) FlexLayoutContext {
         const is_row = node.style.flex_direction == .row;
         const main: u1 = if (is_row) 0 else 1;
 
-        return FlexBuilder{
+        return FlexLayoutContext{
             .node = node,
             .size = size,
 
@@ -48,7 +44,8 @@ const FlexBuilder = struct {
         };
     }
 
-    pub fn compute(self: *FlexBuilder) void {
+    /// Compute the layout for the node.
+    pub fn compute(self: *FlexLayoutContext) void {
         // Compute base sizes, space per line, wrap if needed, etc.
         var iter = self.node.children();
         while (iter.next()) |ch| {
@@ -59,7 +56,8 @@ const FlexBuilder = struct {
         self.finish();
     }
 
-    pub fn addChild(self: *FlexBuilder, child: *Node) void {
+    // Add a child to the current line.
+    fn addChild(self: *FlexLayoutContext, child: *Node) void {
         // Compute base size of the child
         child.size[0] = child.style.width.resolve(self.size[0]);
         child.size[1] = child.style.height.resolve(self.size[1]);
@@ -89,7 +87,7 @@ const FlexBuilder = struct {
         std.debug.assert(self.line_height >= 0);
     }
 
-    pub fn finishLine(self: *FlexBuilder) void {
+    fn finishLine(self: *FlexLayoutContext) void {
         // grow/shrink, position, reverse, align, stretch, margin, ...
         var iter = self.node.children();
         while (iter.next()) |ch| {
@@ -113,7 +111,8 @@ const FlexBuilder = struct {
             self.line_pos += ch.size[self.main] + ch.style.margin_left.resolve0(self.size[0]) + ch.style.margin_right.resolve0(self.size[0]);
         }
 
-        if (isNan(self.node.size[self.main]) and self.line_space < 0) {
+        // TODO: we should do this only if child main size is auto (but flexbox sets it to 0)
+        if (self.line_space < 0) {
             self.node.size[self.main] = -self.line_space;
         }
 
@@ -126,7 +125,7 @@ const FlexBuilder = struct {
         self.shrinks = 0;
     }
 
-    pub fn finish(self: *FlexBuilder) void {
+    fn finish(self: *FlexLayoutContext) void {
         self.finishLine();
 
         // should be already computed by finishLine()

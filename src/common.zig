@@ -1,6 +1,6 @@
 const std = @import("std");
-const computeFlex = @import("flex.zig").computeFlex;
-const computeBlock = @import("block.zig").computeBlock;
+const BlockLayoutContext = @import("block.zig").BlockLayoutContext;
+const FlexLayoutContext = @import("flex.zig").FlexLayoutContext;
 const Node = @import("main.zig").Node;
 
 // Compute layout for the node, given its base size. This is because part of
@@ -14,8 +14,14 @@ pub fn computeNode(node: *Node, size: [2]f32) void {
     }
 
     switch (node.style.display) {
-        .flex => computeFlex(node, size),
-        .block => computeBlock(node, size),
+        .block => {
+            var cx = BlockLayoutContext.init(node, size);
+            cx.compute();
+        },
+        .flex => {
+            var cx = FlexLayoutContext.init(node, size);
+            cx.compute();
+        },
         else => {
             node.pos = .{ 0, 0 };
             node.size = .{ 0, 0 };
