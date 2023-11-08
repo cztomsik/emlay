@@ -20,7 +20,7 @@ pub const Dimension = union(enum) {
     /// Resolve the dimension to a value in pixels.
     pub fn resolve(self: Dimension, base: f32) f32 {
         return switch (self) {
-            .auto => std.math.nan_f32,
+            .auto => std.math.nan(f32),
             .px => |v| v,
             .percent => |v| v / 100 * base,
         };
